@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shape Creator</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #282c34; /* Darker background color */
+      color: #fff;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    #container {
+      background-color: #3e4452; /* Darker container background color */
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 800px; /* Increased maximum width for the container */
+      width: 100%; /* Take up full width */
+      overflow: hidden; /* Prevent overflow */
+    }
+
+    label, select, button {
+      margin-bottom: 10px;
+      color: #fff; /* Text color */
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .shape {
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px solid #3e4452; /* Border color */
+      transition: border 0.3s ease;
+    }
+
+    .shape:hover {
+      border: 2px solid #61dafb; /* Border color on hover */
+    }
+
+    .circle {
+      border-radius: 50%;
+    }
+
+    .color-display {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .color-box {
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
+      border-radius: 5px;
+    }
+
+    #darkModeToggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      color: #61dafb; /* Toggle icon color */
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+      background-color: #1c2025; /* Darker background color in dark mode */
+    }
+
+    #container.dark-mode {
+      background-color: #282c34; /* Darker container background color in dark mode */
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .color-box.dark-mode {
+      border: 1px solid #fff;
+    }
+
+    #feedback {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #3e4452; /* Feedback section background color */
+      color: #61dafb; /* Feedback text color */
+      text-align: center;
+      visibility: hidden; /* Initially hidden */
+    }
+  </style>
+</head>
+<body>
+
+  <div id="darkModeToggle" onclick="toggleDarkMode()">🌙</div>
+
+  <!-- Move the Select Shape, Select Color, and Create outside the container -->
+  <label for="shapeSelect">Select Shape:</label>
+  <select id="shapeSelect">
+    <option value="square">Square</option>
+    <option value="circle">Circle</option>
+  </select>
+
+  <label for="colorSelect">Select Color:</label>
+  <select id="colorSelect">
+    <option value="#09f">Blue</option>
+    <option value="#9f0">Green</option>
+    <option value="#f90">Orange</option>
+    <option value="#f09">Pink</option>
+    <option value="#90f">Purple</option>
+  </select>
+
+  <button onclick="createShape()">Create</button>
+
+  <div id="container">
+    <div id="grid"></div>
+
+    <div class="color-display">
+      <div class="color-box" id="selectedColor"></div>
+      <span id="colorText"></span>
+    </div>
+
+    <!-- Placeholder for feedback -->
+    <div id="feedback-placeholder" style="height: 40px;"></div>
+    <div id="feedback"></div>
+  </div>
+
+  <script>
+    class Shape {
+      static shapeCount = 0;
+      static shapesArray = [];
+      static maxShapes = 18;
+
+      constructor(name, colour) {
+        this._name = name;
+        this._colour = colour;
+        Shape.shapeCount++;
+        this.shapeNumber = Shape.shapeCount;
+        Shape.shapesArray.push(this);
+      }
+
+      get name() {
+        return this._name;
+      }
+
+      get colour() {
+        return this._colour;
+      }
+
+      getInfo() {
+        return `Name: ${this.name}, Colour: ${this.colour}, Number: ${this.shapeNumber}, Position: ${Shape.shapesArray.indexOf(this) + 1}`;
+      }
+    }
+
+    function createShape() {
+      const shapeSelect = document.getElementById('shapeSelect');
+      const colorSelect = document.getElementById('colorSelect');
+      const grid = document.getElementById('grid');
+      const selectedColorBox = document.getElementById('selectedColor');
+      const colorText = document.getElementById('colorText');
+      const feedbackDiv = document.getElementById('feedback');
+      const feedbackPlaceholder = document.getElementById('feedback-placeholder');
+
+      if (Shape.shapesArray.length >= Shape.maxShapes) {
+        feedbackDiv.innerHTML = '<p>Container is full. Cannot create more shapes.</p>';
+        return;
+      }
+
+      const shapeType = shapeSelect.value;
+      const colour = colorSelect.value;
+
+      const newShape = new Shape(shapeType, colour);
+
+      const shapeDiv = document.createElement('div');
+      shapeDiv.classList.add('shape');
+      if (shapeType === 'circle') {
+        shapeDiv.classList.add('circle');
+      }
+      shapeDiv.style.backgroundColor = colour;
+
+      shapeDiv.addEventListener('click', function() {
+        feedbackDiv.innerHTML = `<p>${newShape.getInfo()}</p>`;
+      });
+
+      grid.appendChild(shapeDiv);
+
+      // Display selected color
+      selectedColorBox.style.backgroundColor = colour;
+      colorText.innerText = `Selected Color: ${newShape.colour}`;
+
+      // Show feedback without causing movement
+      feedbackPlaceholder.style.height = '0'; // Reset height
+      feedbackDiv.style.visibility = 'visible';
+      setTimeout(() => {
+        feedbackPlaceholder.style.height = '40px'; // Set height back to the placeholder
+        feedbackDiv.style.visibility = 'hidden';
+      }, 0);
+    }
+
+    function toggleDarkMode() {
+      const body = document.body;
+      const container = document.getElementById('container');
+      const colorBoxes = document.querySelectorAll('.color-box');
+
+      body.classList.toggle('dark-mode');
+      container.classList.toggle('dark-mode');
+
+      colorBoxes.forEach(box => {
+        box.classList.toggle('dark-mode');
+      });
+    }
+  </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Adeniyi Richard">
+    <link rel="stylesheet" href="./assets/style/index.css"/>
+    <title>Shape factory</title>
+    <script src="./assets/script/index.js" defer></script>
+</head>
